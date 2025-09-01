@@ -1,15 +1,18 @@
 
 import { Outlet } from "react-router"
 import CommonLayout from "./components/layout/CommonLayout"
+import { generateRoutes } from "./components/utils/generateRoutes"
+import { adminSidebarItems } from "./routes/adminSidebarItems"
 
 
 function App() {
 
+  // console.log(generateRoutes(adminSidebarItems))
 
   return (
    <CommonLayout>
   
-                <Outlet></Outlet>
+       <Outlet></Outlet>
    </CommonLayout>
   )
 }

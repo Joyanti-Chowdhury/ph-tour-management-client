@@ -8,6 +8,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import config from "@/config";
 import { cn } from "@/lib/utils";
 import { useLoginMutation } from "@/redux/features/auth/auth.api";
 import { type FieldValues, type SubmitHandler, useForm } from "react-hook-form";
@@ -26,7 +27,10 @@ export function LoginForm({
     try {
       const res = await login(data).unwrap();
       console.log(res);
-
+if(res.success){
+  toast.success("Logged in successfully")
+  navigate("/")
+}
     
     } catch (err) {
       console.error(err);
@@ -103,8 +107,9 @@ export function LoginForm({
             Or continue with
           </span>
         </div>
-
+{/* http://localhost:5000/api/v1/auth/google */}
         <Button
+        onClick={() => window.open(`${config.baseUrl}/auth/google`, "_self")}
           type="button"
           variant="outline"
           className="w-full cursor-pointer"

@@ -31,6 +31,7 @@ import {
 import { Dot } from "lucide-react";
 import { useSendOtpMutation, useVerifyOtpMutation } from '@/redux/features/auth/auth.api';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -56,7 +57,7 @@ const Verify = () => {
  const [confirmed, setConfirmed] = useState(false);
  const [sendOtp] = useSendOtpMutation();
  const [verifyOtp] = useVerifyOtpMutation();
-const [timer, setTimer  ] = useState(120);
+const [timer, setTimer  ] = useState(5);
 
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -66,22 +67,24 @@ const [timer, setTimer  ] = useState(120);
     },
   });
 
-  const handleConfirm = async() => {
+  const handleSendOtp  = async() => {
    
-    setConfirmed(true)
+  
 
+     const toastId = toast.loading("Sending OTP")
+    try {
+       const res = await sendOtp ({email: email}).unwrap();
+      if(res.success){
+        toast.success("OTP sent successfully" ,{id: toastId})
+          setConfirmed(true)
+    setTimer(5)
 
-    //  const toastId = toast.loading("Sending OTP")
-    // try {
-    //    const res = await sendOtp ({email: email}).unwrap();
-    //   if(res.success){
-    //     toast.success("OTP sent successfully" ,{id: toastId})
-    //   }
-    //     setConfirmed(true);
+      }
+        setConfirmed(true);
 
-    // } catch (error) {
-    //   console.log(error)
-    // }
+    } catch (error) {
+      console.log(error)
+    }
   
   }
   const onSubmit = async(data: z.infer<typeof FormSchema>) => {
@@ -117,11 +120,17 @@ const [timer, setTimer  ] = useState(120);
   //    },[email])
 
    useEffect(() => {
+
+    if(!email || !confirmed){
+      return;
+    }
     const timerId = setInterval(() => {
         if(email && confirmed){
-          setTimer((prev => prev - 1))
+          setTimer((prev => ( prev > 0 ? prev - 1 : 0)))
         }
     },1000)
+
+    return () => clearInterval(timerId)
    },[email,confirmed])
    
   return (
@@ -173,8 +182,16 @@ const [timer, setTimer  ] = useState(120);
                       </InputOTP>
                     </FormControl>
                     <FormDescription>
-                      <Button variant="link"className=''>Resent OTP </Button>
-                      {timer}
+                      <Button 
+                      onClick={handleSendOtp}
+                      type="button" variant="link"
+                      disabled={timer !==0}
+                      className={cn("p-0 m-0",{
+                        "cursor-pointer" : timer === 0,
+                        "text-gray-500" : timer !== 0
+                      })}
+                      >Resent OTP </Button>
+                        {" "} {timer}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -197,7 +214,7 @@ const [timer, setTimer  ] = useState(120);
         </CardHeader>
        
         <CardFooter className="flex justify-end gap-2">
-          <Button onClick={handleConfirm} form="otp-form" type="submit" className="w-[300px]">
+          <Button onClick={handleSendOtp} form="otp-form" type="submit" className="w-[300px]">
           Confirm
           </Button>
         </CardFooter>
